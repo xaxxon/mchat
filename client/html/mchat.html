@@ -1,0 +1,27 @@
+<head>
+
+</head>
+<body>
+	{{> loginButtons}}	
+	{{> Chat}}
+</body>
+
+<template name='Chat'>
+	<div id='chat'>
+		{{ #each chat_lines }}
+			{{> ChatLine}}
+		{{ /each }}
+	</div>
+	<input type='text' id='new_chat'>
+</template>
+
+<template name='ChatLine'>
+	<div class='line'>
+		<div class='name'>
+			{{user}}
+		</div>
+		<div class='text'>
+			{{text}}
+		</div>
+	</div>	
+</template>	

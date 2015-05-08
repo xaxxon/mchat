@@ -7,3 +7,6 @@
 meteor-platform
 coffeescript
 fourseven:scss
+accounts-ui
+accounts-password
+yuukan:streamy

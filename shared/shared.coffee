@@ -1,0 +1,1 @@
+@chat_collection = new Meteor.Collection "chat"
