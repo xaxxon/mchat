@@ -12,5 +12,16 @@ Meteor.methods
 Meteor.publish "chat", -> 
 	chat_collection.find()
 
-Meteor.publish "custom", ->
+Streamy.on "new_chat", (data, socket)->
+	sending_user = Streamy.user(socket)
+	console.log "Got new chat message from #{sending_user?.username || "anonymous"}: #{data.text}"
+	
+	Streamy.broadcast "chat", 
+		user: sending_user?.username || "anonymous"
+		text: data.text
+
+
+setInterval(
+	->Streamy.broadcast "chat", {user: 'pretend_user', text: 'test text from set interval'},
+	10000)
 	
