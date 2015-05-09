@@ -1,27 +1,25 @@
 
 Meteor.methods
-	add_chat: (text)->
-		new_chat = { text: text}
-		if this.userId
-			new_chat.user = this.userId
-		else
-			new_chat.user = 'anonymous'
-		chat_collection.insert new_chat
+	join_room: (room_name)->
+		throw new Meteor.Error "Not Logged In", "You must be logged in to join a room" unless @userId
+		console.log "#{@userId} trying to join room #{room_name}"
+		room_collection.upsert {name: room_name},
+			$addToSet: 
+				users: @userId
 
-
-Meteor.publish "chat", -> 
-	chat_collection.find()
-
+		
 Streamy.on "new_chat", (data, socket)->
 	sending_user = Streamy.user(socket)
-	console.log "Got new chat message from #{sending_user?.username || "anonymous"}: #{data.text}"
+	# ￿ "Got new chat message from #{sending_user?.username || "anonymous"}: #{data.text}"
 	
-	Streamy.broadcast "chat", 
+	Streamy.broadcast "chat",
 		user: sending_user?.username || "anonymous"
 		text: data.text
+		date: new Date().getTime()
 
 
-setInterval(
-	->Streamy.broadcast "chat", {user: 'pretend_user', text: 'test text from set interval'},
-	10000)
+# sends a test message every 10 seconds
+# setInterval(
+# 	->Streamy.broadcast "chat", {user: 'pretend_user', text: 'test text from set interval'},
+# 	10000)
 	

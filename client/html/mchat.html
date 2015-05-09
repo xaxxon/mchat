@@ -2,8 +2,14 @@
 
 </head>
 <body>
-	{{> loginButtons}}	
-	{{> Chat}}
+	{{#if currentUser}}
+	{{> MenuBar}}
+	<div id='chat_area'>
+		{{> Chat}}
+	</div>
+	{{else}}
+		{{> loginButtons}}
+	{{/if}}
 </body>
 
 <template name='Chat'>
@@ -17,6 +23,9 @@
 
 <template name='ChatLine'>
 	<div class='line'>
+		<div class='timestamp'>
+			{{time date}}
+		</div>
 		<div class='name'>
 			{{user}}
 		</div>
@@ -25,3 +34,19 @@
 		</div>
 	</div>	
 </template>	
+
+<template name="MenuBar">
+	<div id='menubar'>
+		<div class='textbutton'>
+			test
+		</div>
+		<div class='textbutton'>
+			test2
+		</div>
+		{{> Logout}}
+	</div>
+</template>
+
+<template name='Logout'>
+	<div class='textbutton'>logout</div>
+</template>
