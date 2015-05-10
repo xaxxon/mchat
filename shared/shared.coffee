@@ -1,5 +1,4 @@
 @room_collection = new Meteor.Collection "rooms"
-@user_socket_collection = new Meteor.Collection "user_sockets"
 
 # Override Meteor._debug to filter for custom msgs
 Meteor._debug = ((super_meteor_debug)->

@@ -41,6 +41,14 @@ html, body, #menubar, #chat_area {
 	}
 }
 
+.room_users {
+	float: right;
+	height: 100%;
+	width: 80px;
+	background-color: grey;
+	border: 1px solid black;
+}
+
 #login-buttons {
 	right: 250px;
 	z-index: 10;
@@ -48,7 +56,7 @@ html, body, #menubar, #chat_area {
 
 div#chat {
 	overflow: auto;
-	border: 5px solid pink;
+	border: 1px solid pink;
 	top: 0px;
 	bottom: 50px;
 	width: 90%;

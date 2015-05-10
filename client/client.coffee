@@ -63,5 +63,11 @@ Template.Logout.events
 		false
 
 
+Tracker.autorun ->
+	console.log "In tracker autorun trying to join default room"
+	# if Meteor.userId()
+		
 
 		
+Meteor.startup ->
+	Meteor.subscribe "my_rooms"

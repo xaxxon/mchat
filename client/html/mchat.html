@@ -3,14 +3,38 @@
 </head>
 <body>
 	{{#if currentUser}}
-	{{> MenuBar}}
-	<div id='chat_area'>
-		{{> Chat}}
-	</div>
+		{{> MenuBar}}
+		{{> MasterChat}}
 	{{else}}
 		{{> loginButtons}}
 	{{/if}}
 </body>
+<template name='MasterChat'>
+		{{#each joined_rooms}}
+			{{> JoinedRoom}}
+		{{/each}}	
+</template>
+
+<template name='JoinedRoom'>
+	<div id='chat_area'>
+		{{> Chat}}
+		{{> RoomUsers}}
+	</div>
+</template>
+
+<template name='RoomUsers'>
+	<div class='room_users'>	
+		{{#each users}}
+			{{>RoomUser}}
+		{{/each}}
+	</div>
+</template>
+
+<template name='RoomUser'>
+	<div class='user'>
+		{{name}}
+	</div>
+</template>
 
 <template name='Chat'>
 	<div id='chat'>

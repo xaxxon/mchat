@@ -28,9 +28,12 @@ verify_connection = (socket)->
 	
 	socket_user_map[socket] = user_id
 
+Meteor.publish 'my_rooms', ->
+	room_collection.find()
 
 Streamy.on "command", (data, socket)->
 	verify_connection socket
+	console.log "Got command"
 	
 
 Streamy.on "new_chat", (data, socket)->
@@ -49,6 +52,11 @@ Streamy.on "new_chat", (data, socket)->
 	
 Streamy.onConnect (socket)->
 	console.log "#{socket} connected #{Streamy.userId(socket)}"
+	setInterval(
+		(->console.log "1s interval:: #{socket} connected #{Streamy.userId(socket)}"), 1000)
+	Tracker.autorun ->
+		console.log "tracker autorun for streamy socket user id: #{Streamy.userId(socket)}"
+		
 	
 
 user_gone = (user_id)->
@@ -75,5 +83,5 @@ Streamy.onDisconnect (socket)->
 
 Meteor.startup ->
 	# clear out the user socket mapping since there are no users during startup
-	user_socket_collection.remove {}
+	room_collection.remove {}
 	
