@@ -14,7 +14,7 @@ Template.Chat.events
 					Meteor.call "join_room", results[2]
 			else
 				if text?.length > 0
-					Streamy.emit "new_chat", {text: text}
+					Streamy.emit "chat", {text: text, room: "default"}
 
 			$('#new_chat').val("")
 			
@@ -42,6 +42,9 @@ Template.MenuBar.events
 Template.Chat.helpers
 	chat_lines: -> chat_local_collection.find()
 	
+Template.MasterChat.helpers
+	joined_rooms: -> room_collection.find()
+	
 Template.ChatLine.rendered = ->
 	scroll_height = $('#chat').prop 'scrollHeight'
 	$('#chat').scrollTop scroll_height - $('#chat').height()
@@ -68,6 +71,6 @@ Tracker.autorun ->
 	# if Meteor.userId()
 		
 
-		
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
+	Meteor.call "join_room", "default"

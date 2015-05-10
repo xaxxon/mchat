@@ -11,36 +11,57 @@ Array.prototype.find = (item)->
 	return true for current_item in this when current_item = item
 	return false
 
-user_socket_map = {}
-socket_user_map = {}
-verify_connection = (socket)->
-	user_id = Streamy.userId(socket)
-	throw new Meteor.Error "Logged in", "You must be logged in" unless user_id
+known_user_ids = []
+get_sockets_for_users = (user_ids)->
+	user_map = {}
+	user_map[user_id] = true for user_id in user_ids
 	
-	console.log "adding userid #{user_id} to socket #{socket}"
-	socket_array = user_socket_map[user_id]||[]
+	sockets = []
+	for socket_id, socket of Streamy.sockets()
+		sockets.push socket if user_map[Streamy.userId(socket)]
+	# console.log "returning #{sockets.length} sockets for #{user_ids.length} users"
 	
-	# if this socket isn't associated with the user, do that now
-	socket_array.push(socket) if socket_array.missing socket
-	user_socket_map[user_id] = socket_array	
+
+get_users_for_room = (room)->
+	room = room_collection.findOne
+		name: room
+	room.users
+
+poll_sockets = ->
+	users_found = {}
+	# console.log "There were #{known_user_ids.length} known users from #{Object.keys(Streamy.sockets()).length} sockets"
+	for socket_id, socket of Streamy.sockets()
+		if user_id = Streamy.userId(socket) isnt null
+			users_found[user_id] = true
+	# console.log "Found #{Object.keys(users_found).length} users"
+	# call user_gone for any users which no longer have a socket
+	for user_id in known_user_ids
+		user_gone(user_id) unless users_found[user_id]
 	
-	console.log "user #{user_id} now has #{user_socket_map[user_id].length} sockets"
-	
-	socket_user_map[socket] = user_id
+	known_user_ids = Object.keys users_found
+	# console.log "There are now #{known_user_ids.length} known users" 
+
+
+setInterval(
+	(->poll_sockets()), 1000)
+
 
 Meteor.publish 'my_rooms', ->
 	room_collection.find()
-
-Streamy.on "command", (data, socket)->
-	verify_connection socket
-	console.log "Got command"
 	
 
-Streamy.on "new_chat", (data, socket)->
-	verify_connection socket
+Streamy.on "chat", (data, socket)->
+	
+	return unless data.room and data.text
+	
+	console.log "Looking up room #{data.room}"
+	room_users = get_users_for_room data.room
+	console.log "Got #{room_users.length} users in room #{data.room}"
+	room_sockets = get_sockets_for_users room_users
+	console.log "and #{room_sockets.length} sockets for those users"
 	
 	Streamy.broadcast "chat",
-		user: sending_user?.username || "anonymous"
+		user: Streamy.user(socket)?.username || "anonymous"
 		text: data.text
 		date: new Date().getTime()
 
@@ -52,10 +73,6 @@ Streamy.on "new_chat", (data, socket)->
 	
 Streamy.onConnect (socket)->
 	console.log "#{socket} connected #{Streamy.userId(socket)}"
-	setInterval(
-		(->console.log "1s interval:: #{socket} connected #{Streamy.userId(socket)}"), 1000)
-	Tracker.autorun ->
-		console.log "tracker autorun for streamy socket user id: #{Streamy.userId(socket)}"
 		
 	
 
@@ -65,20 +82,6 @@ user_gone = (user_id)->
 
 Streamy.onDisconnect (socket)->
 	console.log "#{socket} disconnected"
-	
-	user_id = socket_user_map[socket]
-	if user_id
-		console.log "Found userid #{user_id} for disconnected socket"
-		delete socket_user_map[socket]
-		user_socket_map[user_id] = filter_array user_socket_map[user_id], socket
-		delete user_socket_map[user_id] if user_socket_map[user_id].length == 0
-		console.log "Sockets remaining for user: #{user_socket_map[user_id]?.length || 0}"
-		
-		# if the user is no longer connected on any socket, then remove them from all chats
-		user_gone(user_id) unless user_socket_map[user_id]
-	
-	else
-		console.log "Found no entry in socket_user_map - happens if no stream data was ever sent from a logged in client"
 
 
 Meteor.startup ->
