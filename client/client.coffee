@@ -13,8 +13,6 @@ Template.Chat.events
 				if results[1] == "join"
 					Meteor.call "join_room", results[2]
 			else
-			
-			
 				if text?.length > 0
 					Streamy.emit "new_chat", {text: text}
 
