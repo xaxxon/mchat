@@ -81,4 +81,13 @@ Tracker.autorun ->
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	Meteor.call "join_room", "default"
-	Meteor.call "join_room", "default2"
+	
+Tracker.autorun ->
+	console.log "in tracker autorun checking for login"
+	console.log Meteor.userId()
+	if Meteor.userId()
+		console.log "logged in"
+		Meteor.call "join_room", "default"
+	else
+		console.log "not logged in"
+		
