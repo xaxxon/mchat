@@ -81,3 +81,4 @@ Tracker.autorun ->
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	Meteor.call "join_room", "default"
+	Meteor.call "join_room", "default2"

@@ -49,8 +49,7 @@ poll_sockets = ->
 	console.log "There are now #{known_user_ids.length} known users"
 
 
-setInterval(
-	(->poll_sockets()), 1000)
+setInterval( Meteor.bindEnvironment(->poll_sockets()), 1000)
 
 
 Meteor.publish 'my_rooms', ->
@@ -85,6 +84,12 @@ Streamy.onConnect (socket)->
 
 user_gone = (user_id)->
 	console.log "user_gone() not implemented yet"
+	# figured out this is how to remove a user by playing around in `meteor mongo`
+	# > db.rooms.update({},{$pull: {users: {user_id: "mH8qZQmjedRHKAsfj"}}},{multi: true})
+	room_collection.update {},
+		{$pull:	{users: {user_id: user_id}}},
+		{multi: true}
+
 
 
 Streamy.onDisconnect (socket)->
