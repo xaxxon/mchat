@@ -5,7 +5,9 @@ Meteor.methods
 		console.log "#{@userId} trying to join room #{room_name}"
 		room_collection.upsert {name: room_name},
 			$addToSet: 
-				users: @userId
+				users: 
+					user_id: @userId
+					user_name: Meteor.user().username
 
 Array.prototype.find = (item)->
 	return true for current_item in this when current_item = item
@@ -29,17 +31,22 @@ get_users_for_room = (room)->
 
 poll_sockets = ->
 	users_found = {}
-	# console.log "There were #{known_user_ids.length} known users from #{Object.keys(Streamy.sockets()).length} sockets"
+	console.log "There were #{known_user_ids.length} known users from #{Object.keys(Streamy.sockets()).length} sockets"
+
 	for socket_id, socket of Streamy.sockets()
-		if user_id = Streamy.userId(socket) isnt null
+		if (user_id = Streamy.userId(socket)) isnt null
+			console.log "User #{user_id} found for socket #{socket_id}"
 			users_found[user_id] = true
-	# console.log "Found #{Object.keys(users_found).length} users"
+		else
+			console.log "No user found for socket #{socket_id}"
+	console.log "Found #{Object.keys(users_found).length} users"
+
 	# call user_gone for any users which no longer have a socket
 	for user_id in known_user_ids
 		user_gone(user_id) unless users_found[user_id]
 	
 	known_user_ids = Object.keys users_found
-	# console.log "There are now #{known_user_ids.length} known users" 
+	console.log "There are now #{known_user_ids.length} known users"
 
 
 setInterval(
@@ -82,6 +89,7 @@ user_gone = (user_id)->
 
 Streamy.onDisconnect (socket)->
 	console.log "#{socket} disconnected"
+	poll_sockets()
 
 
 Meteor.startup ->

@@ -45,6 +45,13 @@ Template.Chat.helpers
 Template.MasterChat.helpers
 	joined_rooms: -> room_collection.find()
 	
+Template.RoomUsers.helpers
+	users: -> 
+		console.log this
+		users = []
+		users.push {name: user.user_name} for user in @users
+		users
+	
 Template.ChatLine.rendered = ->
 	scroll_height = $('#chat').prop 'scrollHeight'
 	$('#chat').scrollTop scroll_height - $('#chat').height()
