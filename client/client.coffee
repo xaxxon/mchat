@@ -21,7 +21,7 @@ Template.Chat.events
 					Streamy.emit "chat", {text: text, room: @name}
 
 			$('.new_chat').val("")
-			
+
 
 
 # Template.Menubar.events
@@ -61,7 +61,7 @@ Template.ChatLine.helpers
 		moment(time).format("HH:mm")
 	
 Meteor.startup ->
-	Meteor.subscribe "chat"
+	Meteor.subscribe "chat"; 
 
 
 Streamy.on "chat", (data, socket)->
@@ -72,13 +72,29 @@ Streamy.on "chat", (data, socket)->
 Template.Logout.events
 	'click': -> 
 		Meteor.logout() if confirm "You are about to logout."
-		false
+		fal
 
 Template.Menubar.helpers
-	rooms: -> room_collection.find()
+	rooms: -> room_collection.find();
+
 	
+
 Template.ActiveRoomButton.events
-	'click': -> Session.set("active_room", @name)
+	'click .leave': (event)-> 
+		console.log "leave button"
+		console.log event
+		event.stopImmediatePropagation()
+		Meteor.call "leave_room", @name
+	'click': (event)-> 
+
+		console.log "setting active room to #{@name}"
+		console.log event
+		Session.set("active_room", @name)
+	
+Template.ActiveRoomButton.helpers
+	active: -> console.log "activeroombutton helper this:"; console.log this; if Session.get('active_room') == @name then 'active' else ''
+	
+	
 
 Tracker.autorun ->
 	console.log "In tracker autorun trying to join default room"

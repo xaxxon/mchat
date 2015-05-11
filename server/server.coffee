@@ -8,6 +8,11 @@ Meteor.methods
 				users: 
 					user_id: @userId
 					user_name: Meteor.user().username
+					
+	leave_room: (room_name)->
+		room_collection.update {name: room_name}, 
+			{$pull:	{users: {user_id: Meteor.userId()}}}
+			
 
 
 Array.prototype.find = (item)->
@@ -64,7 +69,8 @@ setInterval( Meteor.bindEnvironment(->poll_sockets()), 1000)
 
 
 Meteor.publish 'my_rooms', ->
-	room_collection.find()
+	console.log "publishing for user id #{@userId}"
+	room_collection.find({"users.user_id": @userId})
 	
 
 Streamy.on "chat", (data, socket)->

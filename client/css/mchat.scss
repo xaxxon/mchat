@@ -1,4 +1,21 @@
 
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+      -ms-border-radius: $radius;
+          border-radius: $radius;
+}
+
+
+@mixin no-select() {
+    -webkit-touch-callout: none;
+      -webkit-user-select: none;
+       -khtml-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+              user-select: none;
+}
+
 
 html, body, #menubar,  { 
 	height: 100%;
@@ -12,6 +29,14 @@ html, body, #menubar,  {
 	
 	&.expanded {
 		width: 100px;
+	}
+	.textbutton {
+		div {
+			display: inline-block;
+		}
+		&.active {
+			border: 3px solid black;
+		}
 	}
 }
 
@@ -96,4 +121,12 @@ div.chat {
 	border: 1px solid black;
 	float: left;
 	clear: both;
+	cursor: pointer;
+	@include no-select;
+	@include border-radius(5px);
+	background-color: grey;
+	
+	&:hover {
+		background-color: white;
+	}
 }

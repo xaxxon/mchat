@@ -63,6 +63,7 @@
 	<div id='menubar' class='expanded'>
 		{{> Logout}}
 		<div id='menubar_roomlist'>
+			<div>Rooms</div>
 			{{#each rooms}}
 				{{> ActiveRoomButton}}
 			{{/each}}
@@ -72,8 +73,9 @@
 </template>
 
 <template name='ActiveRoomButton'>
-	<div class='textbutton'>
-		{{name}}
+	<div class='textbutton {{active}}'>
+		<div class='change_active_room'>{{name}}</div> 
+		<div class='leave textbutton'>X</div>
 	</div>
 </template>
 
