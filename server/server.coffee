@@ -9,26 +9,37 @@ Meteor.methods
 					user_id: @userId
 					user_name: Meteor.user().username
 
+
 Array.prototype.find = (item)->
 	return true for current_item in this when current_item = item
 	return false
 
-known_user_ids = []
-get_sockets_for_users = (user_ids)->
+
+get_sockets_for_users = (users)->
+	console.log "list of users to check against:"
+	console.log users
 	user_map = {}
-	user_map[user_id] = true for user_id in user_ids
+	user_map[user.user_id] = true for user in users
 	
 	sockets = []
 	for socket_id, socket of Streamy.sockets()
-		sockets.push socket if user_map[Streamy.userId(socket)]
-	# console.log "returning #{sockets.length} sockets for #{user_ids.length} users"
+		console.log "checking socket against list of users:"
+		console.log Streamy.userId(socket)
+		sockets.push(socket) if user_map[Streamy.userId(socket)]
+	console.log "returning #{sockets.length} sockets for #{users.length} users"
 	
+	return sockets
 
 get_users_for_room = (room)->
 	room = room_collection.findOne
 		name: room
 	room.users
 
+
+# This should probably make a cache and any time we want to use
+#   sockets we call this then use the cache immediately since 
+#   cached information can't be used except for immediately after it's generated
+known_user_ids = []
 poll_sockets = ->
 	users_found = {}
 	console.log "There were #{known_user_ids.length} known users from #{Object.keys(Streamy.sockets()).length} sockets"
@@ -57,6 +68,7 @@ Meteor.publish 'my_rooms', ->
 	
 
 Streamy.on "chat", (data, socket)->
+	console.log "**** Got chat message from client"
 	
 	return unless data.room and data.text
 	
@@ -66,10 +78,13 @@ Streamy.on "chat", (data, socket)->
 	room_sockets = get_sockets_for_users room_users
 	console.log "and #{room_sockets.length} sockets for those users"
 	
-	Streamy.broadcast "chat",
-		user: Streamy.user(socket)?.username || "anonymous"
-		text: data.text
-		date: new Date().getTime()
+	for out_socket in room_sockets
+		Streamy.emit "chat",
+			user: Streamy.user(socket)?.username || "anonymous"
+			room: data.room
+			text: data.text
+			date: new Date().getTime(),
+			out_socket
 
 
 # sends a test message every 10 seconds

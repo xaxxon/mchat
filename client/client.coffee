@@ -1,46 +1,46 @@
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
   
-@chat_local_collection = new Mongo.Collection null
 
 Template.Chat.events
-	'keypress #new_chat': (event) ->
+	'keypress .new_chat': (event, template) ->
+
 		if event.which == 13
-			text = $('#new_chat').val()?.trim()
+			console.log "In new chat event, this: "
+			console.log this
+			text = $(template.find('.new_chat')).val()?.trim()
+			console.log "Got new chat: #{text}"
 			
-			if results = text.match /[/](\S+)\s*(.*)\s*$/
+			if results = text?.match /[/](\S+)\s*(.*)\s*$/
 				console.log "Got command #{results[1]}"
 				if results[1] == "join"
 					Meteor.call "join_room", results[2]
 			else
 				if text?.length > 0
-					Streamy.emit "chat", {text: text, room: "default"}
+					room = @name
+					Streamy.emit "chat", {text: text, room: @name}
 
-			$('#new_chat').val("")
+			$('.new_chat').val("")
 			
 
 
-Template.MenuBar.events
-	'click': -> 
-		params = if $('#menubar').hasClass("expanded")
-			{width: 20}
-		else
-			{width: 100}
-			
-		options = 
-			duration: 1000
-			easing: "easeInOutCubic"
-		# params.effect = 'size'
-		# params.duration = 1000
-		# params.complete = -> console.log "animation done"
-		#
-		# console.table params
-		# console.log "animating"
-		# $('#menubar').effect params
-		$('#menubar').animate(params, options).toggleClass("expanded")
+# Template.Menubar.events
+# 	'click': ->
+# 		params = if $('#menubar').hasClass("expanded")
+# 			{width: 20}
+# 		else
+# 			{width: 100}
+#
+# 		options =
+# 			duration: 1000
+# 			easing: "easeInOutCubic"
+#
+# 		$('#menubar').animate(params, options).toggleClass("expanded")
 
+# Need to remove from this at some point
+chat_collections = {}
 Template.Chat.helpers
-	chat_lines: -> chat_local_collection.find()
+	chat_lines: -> chat_collections[@name] ||= new Meteor.Collection null; chat_collections[@name].find()
 	
 Template.MasterChat.helpers
 	joined_rooms: -> room_collection.find()
@@ -65,13 +65,20 @@ Meteor.startup ->
 
 
 Streamy.on "chat", (data, socket)->
-	chat_local_collection.insert data
+	console.log "got chat message for #{data.room}:"
+	console.log data
+	chat_collections[data.room].insert data
 	
 Template.Logout.events
 	'click': -> 
 		Meteor.logout() if confirm "You are about to logout."
 		false
 
+Template.Menubar.helpers
+	rooms: -> room_collection.find()
+	
+Template.ActiveRoomButton.events
+	'click': -> Session.set("active_room", @name)
 
 Tracker.autorun ->
 	console.log "In tracker autorun trying to join default room"
@@ -82,12 +89,19 @@ Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	Meteor.call "join_room", "default"
 	
+Template.Room.helpers
+	active: -> console.log "Room helpers: ";console.log(this); console.log Session.get "active_room"; if Session.get("active_room") == @name then 'active' else ''
+	
+
 Tracker.autorun ->
 	console.log "in tracker autorun checking for login"
 	console.log Meteor.userId()
 	if Meteor.userId()
 		console.log "logged in"
 		Meteor.call "join_room", "default"
+		Meteor.call "join_room", "default2"
+		Session.set("active_room", "default")
+		
 	else
 		console.log "not logged in"
 		

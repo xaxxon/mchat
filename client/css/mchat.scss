@@ -1,6 +1,6 @@
 
 
-html, body, #menubar, #chat_area { 
+html, body, #menubar,  { 
 	height: 100%;
 	margin: 0;
 }
@@ -9,21 +9,31 @@ html, body, #menubar, #chat_area {
 	width: 20px;
 	float: left;
 	background-color: red;
+	
+	&.expanded {
+		width: 100px;
+	}
 }
 
 
-
-#chat_area {
+.room {
+	height: 100%;
 	position: relative;
 	overflow: auto;
 	margin: 0;
 	background-color: green;
+	display: none;
 	
-	#chat, #new_chat {
+	&.active {
+		display: block;
+	}
+	
+	.chat, .new_chat {
 		margin-left: 5px;
 	}
 
-	#chat {
+	.chat {
+		border: 1px solid black;
 		margin-top: 5px;
 		position: absolute;
 		width: 90%;
@@ -31,7 +41,7 @@ html, body, #menubar, #chat_area {
 		bottom: 40px;	
 	}
 
-	#new_chat {
+	.new_chat {
 		position: absolute;
 		width: 90%;
 		height: 20px;
@@ -54,9 +64,8 @@ html, body, #menubar, #chat_area {
 	z-index: 10;
 }
 
-div#chat {
+div.chat {
 	overflow: auto;
-	border: 1px solid pink;
 	top: 0px;
 	bottom: 50px;
 	width: 90%;

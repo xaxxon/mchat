@@ -3,7 +3,7 @@
 </head>
 <body>
 	{{#if currentUser}}
-		{{> MenuBar}}
+		{{> Menubar}}
 		{{> MasterChat}}
 	{{else}}
 		{{> loginButtons}}
@@ -11,12 +11,12 @@
 </body>
 <template name='MasterChat'>
 		{{#each joined_rooms}}
-			{{> JoinedRoom}}
+			{{> Room}}
 		{{/each}}	
 </template>
 
-<template name='JoinedRoom'>
-	<div id='chat_area'>
+<template name='Room'>
+	<div class='room {{active}}' id='{{name}}'>
 		{{> Chat}}
 		{{> RoomUsers}}
 	</div>
@@ -37,12 +37,12 @@
 </template>
 
 <template name='Chat'>
-	<div id='chat'>
+	<div class='chat'>
 		{{ #each chat_lines }}
 			{{> ChatLine}}
 		{{ /each }}
 	</div>
-	<input type='text' id='new_chat'>
+	<input type='text' class='new_chat'>
 </template>
 
 <template name='ChatLine'>
@@ -59,15 +59,21 @@
 	</div>	
 </template>	
 
-<template name="MenuBar">
-	<div id='menubar'>
-		<div class='textbutton'>
-			test
-		</div>
-		<div class='textbutton'>
-			test2
-		</div>
+<template name="Menubar">
+	<div id='menubar' class='expanded'>
 		{{> Logout}}
+		<div id='menubar_roomlist'>
+			{{#each rooms}}
+				{{> ActiveRoomButton}}
+			{{/each}}
+		</div>
+		
+	</div>
+</template>
+
+<template name='ActiveRoomButton'>
+	<div class='textbutton'>
+		{{name}}
 	</div>
 </template>
 
