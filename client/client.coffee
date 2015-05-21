@@ -65,7 +65,6 @@ Meteor.startup ->
 	Meteor.subscribe "chat"; 
 
 
-	
 Template.Logout.events
 	'click': -> 
 		Meteor.logout() if confirm "You are about to logout."

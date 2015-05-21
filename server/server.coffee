@@ -52,4 +52,26 @@ Meteor.publish 'my_rooms', ->
 Meteor.startup ->
 	console.log "Removing all room info on startup"
 	room_collection.remove {}
+
+
+Meteor.setInterval (->
+	console.log "Checking for old chats #{moment().subtract 5, "minutes"}"
 	
+	# Delete stored chat elements older than threshold
+	# meteor:PRIMARY> db.rooms.update({}, {$pull: {"chat":{date: {$lt: 1432208317490}}}})
+	room_collection.update {},
+		$pull:
+			chat: 
+				date:
+					$lt: moment().subtract(5, "minutes").valueOf(),
+		(error)-> console.log error
+	
+		
+			
+	), 60000
+	
+
+			
+	
+
+
