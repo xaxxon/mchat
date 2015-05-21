@@ -41,16 +41,18 @@ Meteor.publish 'my_rooms', ->
 UserStatus.events.on "connectionLogout", (fields)->
 	console.log "connection logout:"
 	console.log fields
-	console.log "Count of other connections for this user: #{UserStatus.connections.find({userId: fields.userId}).count()}"
+	user_connection_count = UserStatus.connections.find({userId: fields.userId}).count()
+	console.log "Count of other connections for this user: #{user_connection_count}"
+	user_gone fields.userId unless user_connection_count > 0
 
 	
 
-# user_gone = (user_id)->
-# 	# figured out this is how to remove a user by playing around in `meteor mongo`
-# 	# > db.rooms.update({},{$pull: {users: {user_id: "mH8qZQmjedRHKAsfj"}}},{multi: true})
-# 	room_collection.update {},
-# 		{$pull:	{users: {user_id: user_id}}},
-# 		{multi: true}
+user_gone = (user_id)->
+	# figured out this is how to remove a user by playing around in `meteor mongo`
+	# > db.rooms.update({},{$pull: {users: {user_id: "mH8qZQmjedRHKAsfj"}}},{multi: true})
+	room_collection.update {},
+		{$pull:	{users: {user_id: user_id}}},
+		{multi: true}
 
 
 Meteor.startup ->
