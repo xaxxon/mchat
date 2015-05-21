@@ -38,6 +38,10 @@ Meteor.publish 'my_rooms', ->
 	console.log "publishing for user id #{@userId}"
 	room_collection.find({"users.user_id": @userId})
 	
+UserStatus.events.on "connectionLogout", (fields)->
+	console.log "connection logout:"
+	console.log fields
+	console.log "Count of other connections for this user: #{UserStatus.connections.find({userId: fields.userId}).count()}"
 
 	
 
@@ -55,7 +59,7 @@ Meteor.startup ->
 
 
 Meteor.setInterval (->
-	console.log "Checking for old chats #{moment().subtract 5, "minutes"}"
+	# console.log "Checking for old chats #{moment().subtract 5, "minutes"}"
 	
 	# Delete stored chat elements older than threshold
 	# meteor:PRIMARY> db.rooms.update({}, {$pull: {"chat":{date: {$lt: 1432208317490}}}})

@@ -97,6 +97,13 @@ Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	Meteor.call "join_room", "default"
 	
+	room_collection.find().observeChanges
+		added: (id, fields)->
+			console.log "ObserveChanges added: #{id}"
+			console.log fields
+		changed: (id, fields)->
+			console.log "ObserveChanges changed: #{id}"
+			console.log fields
 
 
 	Tracker.autorun ->
