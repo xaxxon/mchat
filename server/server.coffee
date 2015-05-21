@@ -14,26 +14,19 @@ Meteor.methods
 			{$pull:	{users: {user_id: Meteor.userId()}}}
 			
 
+	add_chat: (room_name, text)->
+		console.log "Add chat #{room_name} #{text}"
+		room_collection.update {name: room_name},
+			$addToSet:
+				chat:
+					user_id: @userId
+					date: Date.now()
+					text: text
+					
 
 Array.prototype.find = (item)->
 	return true for current_item in this when current_item = item
 	return false
-
-
-get_sockets_for_users = (users)->
-	console.log "list of users to check against:"
-	console.log users
-	user_map = {}
-	user_map[user.user_id] = true for user in users
-	
-	sockets = []
-	for socket_id, socket of Streamy.sockets()
-		console.log "checking socket against list of users:"
-		console.log Streamy.userId(socket)
-		sockets.push(socket) if user_map[Streamy.userId(socket)]
-	console.log "returning #{sockets.length} sockets for #{users.length} users"
-	
-	return sockets
 
 get_users_for_room = (room)->
 	room = room_collection.findOne
@@ -41,84 +34,22 @@ get_users_for_room = (room)->
 	room.users
 
 
-# This should probably make a cache and any time we want to use
-#   sockets we call this then use the cache immediately since 
-#   cached information can't be used except for immediately after it's generated
-known_user_ids = []
-poll_sockets = ->
-	users_found = {}
-	console.log "There were #{known_user_ids.length} known users from #{Object.keys(Streamy.sockets()).length} sockets"
-
-	for socket_id, socket of Streamy.sockets()
-		if (user_id = Streamy.userId(socket)) isnt null
-			console.log "User #{user_id} found for socket #{socket_id}"
-			users_found[user_id] = true
-		else
-			console.log "No user found for socket #{socket_id}"
-	console.log "Found #{Object.keys(users_found).length} users"
-
-	# call user_gone for any users which no longer have a socket
-	for user_id in known_user_ids
-		user_gone(user_id) unless users_found[user_id]
-	
-	known_user_ids = Object.keys users_found
-	console.log "There are now #{known_user_ids.length} known users"
-
-
-setInterval( Meteor.bindEnvironment(->poll_sockets()), 1000)
-
-
 Meteor.publish 'my_rooms', ->
 	console.log "publishing for user id #{@userId}"
 	room_collection.find({"users.user_id": @userId})
 	
 
-Streamy.on "chat", (data, socket)->
-	console.log "**** Got chat message from client"
-	
-	return unless data.room and data.text
-	
-	console.log "Looking up room #{data.room}"
-	room_users = get_users_for_room data.room
-	console.log "Got #{room_users.length} users in room #{data.room}"
-	room_sockets = get_sockets_for_users room_users
-	console.log "and #{room_sockets.length} sockets for those users"
-	
-	for out_socket in room_sockets
-		Streamy.emit "chat",
-			user: Streamy.user(socket)?.username || "anonymous"
-			room: data.room
-			text: data.text
-			date: new Date().getTime(),
-			out_socket
-
-
-# sends a test message every 10 seconds
-# setInterval(
-# 	->Streamy.broadcast "chat", {user: 'pretend_user', text: 'test text from set interval'},
-# 	10000)
-	
-Streamy.onConnect (socket)->
-	console.log "#{socket} connected #{Streamy.userId(socket)}"
-		
 	
 
-user_gone = (user_id)->
-	console.log "user_gone() not implemented yet"
-	# figured out this is how to remove a user by playing around in `meteor mongo`
-	# > db.rooms.update({},{$pull: {users: {user_id: "mH8qZQmjedRHKAsfj"}}},{multi: true})
-	room_collection.update {},
-		{$pull:	{users: {user_id: user_id}}},
-		{multi: true}
-
-
-
-Streamy.onDisconnect (socket)->
-	console.log "#{socket} disconnected"
-	poll_sockets()
+# user_gone = (user_id)->
+# 	# figured out this is how to remove a user by playing around in `meteor mongo`
+# 	# > db.rooms.update({},{$pull: {users: {user_id: "mH8qZQmjedRHKAsfj"}}},{multi: true})
+# 	room_collection.update {},
+# 		{$pull:	{users: {user_id: user_id}}},
+# 		{multi: true}
 
 
 Meteor.startup ->
-	# clear out the user socket mapping since there are no users during startup
+	console.log "Removing all room info on startup"
 	room_collection.remove {}
 	

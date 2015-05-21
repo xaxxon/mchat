@@ -43,7 +43,7 @@
 
 <template name='Chat'>
 	<div class='chat'>
-		{{ #each chat_lines }}
+		{{ #each chat }}
 			{{> ChatLine}}
 		{{ /each }}
 	</div>
@@ -56,7 +56,7 @@
 			{{time date}}
 		</div>
 		<div class='name'>
-			{{user}}
+			{{user_id}}
 		</div>
 		<div class='text'>
 			{{text}}

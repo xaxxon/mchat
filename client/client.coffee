@@ -22,8 +22,9 @@ Template.Chat.events
 			else
 				if text?.length > 0
 					room = @name
-					Streamy.emit "chat", {text: text, room: @name}
+					Meteor.call "add_chat", Session.get("active_room"), text
 
+			# clear the text entry
 			$('.new_chat').val("")
 
 
@@ -41,10 +42,6 @@ Template.Chat.events
 #
 # 		$('#menubar').animate(params, options).toggleClass("expanded")
 
-# Need to remove from this at some point
-chat_collections = {}
-Template.Chat.helpers
-	chat_lines: -> chat_collections[@name] ||= new Meteor.Collection null; chat_collections[@name].find()
 	
 Template.MasterChat.helpers
 	joined_rooms: -> room_collection.find()
@@ -62,16 +59,12 @@ Template.ChatLine.rendered = ->
 	
 Template.ChatLine.helpers
 	time: (time)->
-		moment(time).format("HH:mm")
+		moment(time).format("HH:mm:ss")
 	
 Meteor.startup ->
 	Meteor.subscribe "chat"; 
 
 
-Streamy.on "chat", (data, socket)->
-	console.log "got chat message for #{data.room}:"
-	console.log data
-	chat_collections[data.room].insert data
 	
 Template.Logout.events
 	'click': -> 
