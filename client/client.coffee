@@ -1,3 +1,7 @@
+
+# Make the Meteor object available to all templates
+Template.registerHelper "Meteor", ->Meteor
+
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
   
@@ -72,7 +76,6 @@ Streamy.on "chat", (data, socket)->
 Template.Logout.events
 	'click': -> 
 		Meteor.logout() if confirm "You are about to logout."
-		fal
 
 Template.Menubar.helpers
 	rooms: -> room_collection.find();
@@ -85,39 +88,47 @@ Template.ActiveRoomButton.events
 		console.log event
 		event.stopImmediatePropagation()
 		Meteor.call "leave_room", @name
-	'click': (event)-> 
 
+	'click': (event)->
 		console.log "setting active room to #{@name}"
 		console.log event
 		Session.set("active_room", @name)
-	
-Template.ActiveRoomButton.helpers
-	active: -> console.log "activeroombutton helper this:"; console.log this; if Session.get('active_room') == @name then 'active' else ''
-	
-	
 
-Tracker.autorun ->
-	console.log "In tracker autorun trying to join default room"
-	# if Meteor.userId()
-		
+
+
+Template.ActiveRoomButton.helpers
+	active: -> 
+		if Session.get('active_room') == @name then 'active' else ''
+
 
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	Meteor.call "join_room", "default"
 	
+
+
+	Tracker.autorun ->
+		console.log "in tracker autorun checking for login"
+		console.log Meteor.userId()
+		if Meteor.userId() and Meteor.status().connected
+			console.log "logged in and connected"
+			Meteor.call "join_room", "default"
+			Meteor.call "join_room", "default2"
+			Session.set("active_room", "default")
+		
+		else
+			console.log "not logged in"
+		
+		
+	Tracker.autorun ->
+		console.error "Checking for active room" 
+		if room_collection.findOne() && room_collection.find({name: Session.get("active_room")}).count() == 0
+			console.log "active room missing"
+			Session.set("active_room", room_collection.findOne().name)
+		else
+			console.log "Active room still exists"
+	
 Template.Room.helpers
 	active: -> console.log "Room helpers: ";console.log(this); console.log Session.get "active_room"; if Session.get("active_room") == @name then 'active' else ''
 	
 
-Tracker.autorun ->
-	console.log "in tracker autorun checking for login"
-	console.log Meteor.userId()
-	if Meteor.userId()
-		console.log "logged in"
-		Meteor.call "join_room", "default"
-		Meteor.call "join_room", "default2"
-		Session.set("active_room", "default")
-		
-	else
-		console.log "not logged in"
-		

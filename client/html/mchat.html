@@ -1,14 +1,19 @@
 <head>
 
 </head>
-<body>
-	{{#if currentUser}}
-		{{> Menubar}}
-		{{> MasterChat}}
+<body>	
+	{{#unless Meteor.status.connected}}
+		Not connected to server
 	{{else}}
-		{{> loginButtons}}
-	{{/if}}
+		{{#unless currentUser}}
+			{{> loginButtons}}
+		{{else}}
+			{{> Menubar}}
+			{{> MasterChat}}
+		{{/unless}}
+	{{/unless}}
 </body>
+
 <template name='MasterChat'>
 		{{#each joined_rooms}}
 			{{> Room}}
