@@ -5,6 +5,8 @@ Template.registerHelper "Meteor", ->Meteor
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
   
+local_chat_collections = {}
+
 
 Template.Chat.events
 	'keypress .new_chat': (event, template) ->
@@ -27,7 +29,12 @@ Template.Chat.events
 			# clear the text entry
 			$('.new_chat').val("")
 
-
+Template.Chat.helpers
+	cached_chat: ->
+		console.warn "*******In template.chat.helpers, this:"
+		console.log this
+		local_chat_collections[@_id].find()
+	
 
 # Template.Menubar.events
 # 	'click': ->
@@ -92,19 +99,25 @@ Template.ActiveRoomButton.helpers
 	active: -> 
 		if Session.get('active_room') == @name then 'active' else ''
 
-
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
-	Meteor.call "join_room", "default"
 	
 	room_collection.find().observeChanges
-		added: (id, fields)->
-			console.log "ObserveChanges added: #{id}"
-			console.log fields
+		added: (id, room)->
+			console.warn "ObserveChanges added: #{id} for #{room.name}"
+			console.log room
+			local_chat_collections[id] = new Mongo.Collection null
+			local_chat_collections[id].insert line for line in room.chat || []
+				
+				
 		changed: (id, fields)->
-			console.log "ObserveChanges changed: #{id}"
+			console.warn "ObserveChanges changed: #{id}"
 			console.log fields
-
+			for line in fields.chat by -1
+				if local_chat_collections[id].find(id: line.id).count() == 0
+					local_chat_collections[id].insert line
+				else
+					break
 
 	Tracker.autorun ->
 		console.log "in tracker autorun checking for login"

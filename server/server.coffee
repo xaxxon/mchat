@@ -22,11 +22,8 @@ Meteor.methods
 					user_id: @userId
 					date: Date.now()
 					text: text
+					id: Random.id()
 					
-
-Array.prototype.find = (item)->
-	return true for current_item in this when current_item = item
-	return false
 
 get_users_for_room = (room)->
 	room = room_collection.findOne
@@ -38,11 +35,9 @@ Meteor.publish 'my_rooms', ->
 	console.log "publishing for user id #{@userId}"
 	room_collection.find({"users.user_id": @userId})
 	
+
 UserStatus.events.on "connectionLogout", (fields)->
-	console.log "connection logout:"
-	console.log fields
 	user_connection_count = UserStatus.connections.find({userId: fields.userId}).count()
-	console.log "Count of other connections for this user: #{user_connection_count}"
 	user_gone fields.userId unless user_connection_count > 0
 
 	
@@ -61,7 +56,7 @@ Meteor.startup ->
 
 
 Meteor.setInterval (->
-	# console.log "Checking for old chats #{moment().subtract 5, "minutes"}"
+	console.log "Checking for old chats #{moment().subtract 10, 'seconds'}"
 	
 	# Delete stored chat elements older than threshold
 	# meteor:PRIMARY> db.rooms.update({}, {$pull: {"chat":{date: {$lt: 1432208317490}}}})
@@ -69,12 +64,11 @@ Meteor.setInterval (->
 		$pull:
 			chat: 
 				date:
-					$lt: moment().subtract(5, "minutes").valueOf(),
-		(error)-> console.log error
-	
-		
+					$lt: moment().subtract(10, "seconds").valueOf(),
+		{multi: true}
+		(error)-> console.log error if error
 			
-	), 60000
+	), 1000
 	
 
 			
