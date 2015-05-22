@@ -56,7 +56,7 @@ Meteor.startup ->
 
 
 Meteor.setInterval (->
-	console.log "Checking for old chats #{moment().subtract 10, 'seconds'}"
+	# console.log "Checking for old chats #{moment().subtract 10, 'seconds'}"
 	
 	# Delete stored chat elements older than threshold
 	# meteor:PRIMARY> db.rooms.update({}, {$pull: {"chat":{date: {$lt: 1432208317490}}}})

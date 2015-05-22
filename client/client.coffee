@@ -5,36 +5,32 @@ Template.registerHelper "Meteor", ->Meteor
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
   
-local_chat_collections = {}
+local_chat_collections = {"_connection": new Mongo.Collection null}
 
 
 Template.Chat.events
 	'keypress .new_chat': (event, template) ->
 
 		if event.which == 13
-			console.log "In new chat event, this: "
-			console.log this
 			text = $(template.find('.new_chat')).val()?.trim()
-			console.log "Got new chat: #{text}"
 			
 			if results = text?.match /[/](\S+)\s*(.*)\s*$/
-				console.log "Got command #{results[1]}"
 				if results[1] == "join"
 					Meteor.call "join_room", results[2]
 			else
 				if text?.length > 0
 					room = @name
-					Meteor.call "add_chat", Session.get("active_room"), text
+					console.log "template chat events this:"
+					console.log this
+					Meteor.call "add_chat", Session.get("active_room"), text unless @client_only
 
 			# clear the text entry
 			$('.new_chat').val("")
 
 Template.Chat.helpers
 	cached_chat: ->
-		console.warn "*******In template.chat.helpers, this:"
-		console.log this
 		local_chat_collections[@_id].find()
-	
+		
 
 # Template.Menubar.events
 # 	'click': ->
@@ -52,13 +48,15 @@ Template.Chat.helpers
 	
 Template.MasterChat.helpers
 	joined_rooms: -> room_collection.find()
+	server_connection: ->
+		_id: "_connection"
+		name: "_connection"
+		client_only: true
+		
 	
 Template.RoomUsers.helpers
 	users: -> 
-		console.log this
-		users = []
-		users.push {name: user.user_name} for user in @users
-		users
+		{name: user.user_name} for user in @users
 	
 Template.ChatLine.rendered = ->
 	scroll_height = $('#chat').prop 'scrollHeight'
@@ -77,9 +75,11 @@ Template.Logout.events
 		Meteor.logout() if confirm "You are about to logout."
 
 Template.Menubar.helpers
-	rooms: -> room_collection.find();
+	rooms: -> room_collection.find()
+	server_connection: ->
+		name: "_connection"
 
-	
+
 
 Template.ActiveRoomButton.events
 	'click .leave': (event)-> 
@@ -97,6 +97,7 @@ Template.ActiveRoomButton.events
 
 Template.ActiveRoomButton.helpers
 	active: -> 
+		console.log "Checking #{Session.get('active_room')} vs #{@name}"
 		if Session.get('active_room') == @name then 'active' else ''
 
 Meteor.startup ->
@@ -113,7 +114,7 @@ Meteor.startup ->
 		changed: (id, fields)->
 			console.warn "ObserveChanges changed: #{id}"
 			console.log fields
-			for line in fields.chat by -1
+			for line in fields.chat? by -1
 				if local_chat_collections[id].find(id: line.id).count() == 0
 					local_chat_collections[id].insert line
 				else
@@ -134,13 +135,16 @@ Meteor.startup ->
 		
 	Tracker.autorun ->
 		console.error "Checking for active room" 
-		if room_collection.findOne() && room_collection.find({name: Session.get("active_room")}).count() == 0
+		active_room = Session.get("active_room")
+		if active_room =~ /^>/ || (room_collection.findOne() && room_collection.find({name: active_room}).count() == 0)
 			console.log "active room missing"
 			Session.set("active_room", room_collection.findOne().name)
 		else
 			console.log "Active room still exists"
 	
 Template.Room.helpers
-	active: -> console.log "Room helpers: ";console.log(this); console.log Session.get "active_room"; if Session.get("active_room") == @name then 'active' else ''
+	active: -> 
+		console.log "Template.Room.helpers checking #{Session.get('active_room')} vs #{@name}"
+		if Session.get("active_room") == @name then 'active' else ''
 	
 

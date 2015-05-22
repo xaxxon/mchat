@@ -15,6 +15,7 @@
 </body>
 
 <template name='MasterChat'>
+		{{> Room server_connection}}
 		{{#each joined_rooms}}
 			{{> Room}}
 		{{/each}}	
@@ -69,6 +70,7 @@
 		{{> Logout}}
 		<div id='menubar_roomlist'>
 			<div>Rooms</div>
+			{{> ActiveRoomButton server_connection}}
 			{{#each rooms}}
 				{{> ActiveRoomButton}}
 			{{/each}}
@@ -80,7 +82,7 @@
 <template name='ActiveRoomButton'>
 	<div class='textbutton {{active}}'>
 		<div class='change_active_room'>{{name}}</div> 
-		<div class='leave textbutton'>X</div>
+		<!-- <div class='leave textbutton'>X</div> -->
 	</div>
 </template>
 
