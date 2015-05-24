@@ -16,9 +16,9 @@ Meteor.methods
 			{$pull:	{users: {user_id: Meteor.userId()}}}
 			
 
-	add_chat: (room_name, text)->
-		console.log "Add chat #{room_name} #{text}"
-		room_collection.update {name: room_name},
+	add_chat: (room_id, text)->
+		console.log "Add chat #{room_id} #{text}"
+		room_collection.update {_id: room_id},
 			$addToSet:
 				chat:
 					user_id: @userId
@@ -26,6 +26,17 @@ Meteor.methods
 					date: Date.now()
 					text: text
 					id: Random.id()
+					
+	broadcast_chat: (text)->
+		console.log "Add chat #{room_id} #{text}"
+		room_collection.update {},
+			$addToSet:
+				chat:
+					user_id: @userId
+					username: Meteor.user().username
+					date: Date.now()
+					text: text
+					id: Random.id()				
 					
 
 get_users_for_room = (room)->

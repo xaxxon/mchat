@@ -22,7 +22,7 @@ Template.Chat.events
 			else
 				if text?.length > 0
 					room = @name
-					Meteor.call "add_chat", Session.get("active_room"), text unless @client_only
+					Meteor.call "add_chat", get_active_room(), text unless @client_only
 
 			# clear the text entry
 			$('.new_chat').val("")
@@ -65,6 +65,7 @@ Template.Menubar.helpers
 	rooms: -> room_collection.find()
 	server_connection: ->
 		name: "_connection"
+		_id: "_connection"
 
 
 
@@ -74,15 +75,15 @@ Template.ActiveRoomButton.events
 		Meteor.call "leave_room", @name
 
 	'click': (event)->
-		console.log "setting active room to #{@name}"
-		set_active_room @name
+		console.log "setting active room to #{@_id}"
+		set_active_room @_id
 
 
 
 Template.ActiveRoomButton.helpers
 	active: ->
-		console.log "Comparing #{Session.get('active_room')} and #{@name}"
-		if Session.get('active_room') == @name then 'active' else ''
+		console.log "Comparing #{get_active_room()} and #{@_id}"
+		if get_active_room() == @_id then 'active' else ''
 
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
@@ -93,7 +94,9 @@ Meteor.startup ->
 			local_chat_collections[id].insert line for line in room.chat || []
 			console.log ".room_button.#{id}"
 			console.log $(".room_button.#{id}")
-			$(".room_button.#{id}").addClass "new_content"
+			
+			# highlight the tab unless it's the current tab (already being looked at)
+			$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
 
 		changed: (id, fields)->
 			# Look backwards for the newest chat we've already cached locally and stop
@@ -102,7 +105,7 @@ Meteor.startup ->
 					local_chat_collections[id].insert line
 					console.log ".room_button.#{id}"
 					console.log $(".room_button.#{id}")
-					$(".room_button.#{id}").addClass "new_content"
+					$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
 				else
 					break
 
@@ -117,19 +120,22 @@ Meteor.startup ->
 		
 		
 	Tracker.autorun ->
-		active_room = Session.get("active_room")
-		if (!(active_room =~ /^>/)) && (room_collection.findOne() && room_collection.find({name: active_room}).count() == 0)
+		active_room = get_active_room()
+		if (!(active_room =~ /^>/)) && (room_collection.findOne() && room_collection.find({active_room}).count() == 0)
 			console.log "Setting active room because old actaive room gone"
-			set_active_room room_collection.findOne()?.name
+			set_active_room room_collection.findOne()?._id
 	
 	
-set_active_room = (name)->
-	Session.set("active_room", name)
-	$(".room_button.#{name}").removeClass "new_content"
+get_active_room = ->
+	Session.get "active_room"	
+	
+set_active_room = (id)->
+	Session.set("active_room", id)
+	$(".room_button.#{id}").removeClass "new_content"
 	
 
 Template.Room.helpers
 	active: -> 
-		if Session.get("active_room") == @name then 'active' else ''
+		if get_active_room() == @_id then 'active' else ''
 	
 
