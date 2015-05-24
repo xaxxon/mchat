@@ -22,14 +22,14 @@
 </template>
 
 <template name='Room'>
-	<div class='room {{active}}' id='{{name}}'>
+	<div class='room {{active}}' id='{{_id}}'>
 		{{> Chat}}
 		{{> RoomUsers}}
 	</div>
 </template>
 
 <template name='RoomUsers'>
-	<div class='room_users'>	
+	<div class='room_users'>
 		{{#each users}}
 			{{>RoomUser}}
 		{{/each}}
@@ -57,7 +57,7 @@
 			{{time date}}
 		</div>
 		<div class='name'>
-			{{user_id}}
+			{{username}}
 		</div>
 		<div class='text'>
 			{{text}}
@@ -80,9 +80,8 @@
 </template>
 
 <template name='ActiveRoomButton'>
-	<div class='textbutton {{active}}'>
-		<div class='change_active_room'>{{name}}</div> 
-		<!-- <div class='leave textbutton'>X</div> -->
+	<div class='room_button {{_id}} {{active}}'>
+		{{name}}
 	</div>
 </template>
 

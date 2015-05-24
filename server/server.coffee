@@ -3,6 +3,8 @@ Meteor.methods
 	join_room: (room_name)->
 		throw new Meteor.Error "Not Logged In", "You must be logged in to join a room" unless @userId
 		console.log "#{@userId} trying to join room #{room_name}"
+		console.log "testing against #{valid_regexes.room_name}"
+		throw new Meteor.Error "Invalid room name, must start with a-z and contain only a-z and _" unless room_name.match valid_regexes.room_name
 		room_collection.upsert {name: room_name},
 			$addToSet: 
 				users: 
@@ -20,6 +22,7 @@ Meteor.methods
 			$addToSet:
 				chat:
 					user_id: @userId
+					username: Meteor.user().username
 					date: Date.now()
 					text: text
 					id: Random.id()

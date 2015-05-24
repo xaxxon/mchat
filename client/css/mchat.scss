@@ -30,15 +30,27 @@ html, body, #menubar,  {
 	&.expanded {
 		width: 100px;
 	}
-	.room {
-		width: 80%;
-	}
-	.textbutton {
-		div {
-			display: inline-block;
-		}
-		&.active {
-			border: 3px solid black;
+	#menubar_roomlist {
+		.room_button {
+			width: 100%;
+			border-left: 0;
+			border-right: 0;
+			border-top: 1px solid black;
+			border-bottom: 1px solid black;
+			margin-bottom: 5px;
+			margin-top: 5px;
+			background-color: grey;
+			padding-top: 2px;
+			padding-bottom: 2px;
+			&.active {
+				border-top: 3px solid black;
+				border-bottom: 3px solid black;
+				margin-top: 4px;
+				margin-bottom: 4px;
+			}
+			&.new_content {
+				color: red;
+			}
 		}
 	}
 }

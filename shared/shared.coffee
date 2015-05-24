@@ -20,3 +20,6 @@ Array.prototype.missing = (item)-> !this.find(item)
 
 @filter_array = (array, item)->
 	(i for i in array when i != item)
+	
+@valid_regexes =
+	room_name: /^[a-z][a-z_]*/
