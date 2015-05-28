@@ -5,13 +5,12 @@ Template.registerHelper "Meteor", ->Meteor
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
 
-# Local collections for storing chat for each room even after the server deletes them
-@local_chat_collections = {"_connection": new Mongo.Collection null}
+all_rooms = new Mongo.Collection null
 
 
 Template.Chat.events
 		
-	'keypress .new_chat': (event, template) ->
+	'keypress .new_chat': (event, template) ->~
 
 		# if enter was pressed
 		if event.which == 13
@@ -27,26 +26,12 @@ Template.Chat.events
 			# clear the text entry
 			$('.new_chat').val("")
 
-
-Template.Chat.helpers
-	cached_chat: ->
-		get_local_chat_collections(@_id).find()
-		
-
 	
 Template.MasterChat.helpers
-	joined_rooms: -> room_collection.find()
-	server_connection: ->
-		_id: "_connection"
-		name: "_connection"
-		client_only: true
-		
+	joined_rooms: -> all_rooms.find()
 	
-Template.RoomUsers.helpers
-	users: -> 
-		{name: user.user_name} for user in @users if @users
-	
-	
+
+# This should move into a Tracker.afterFlush, most likely	
 Template.ChatLine.rendered = ->
 	scroll_height = $('#chat').prop 'scrollHeight'
 	$('#chat').scrollTop scroll_height - $('#chat').height()
@@ -54,9 +39,6 @@ Template.ChatLine.rendered = ->
 Template.ChatLine.helpers
 	time: (time)->
 		moment(time).format("HH:mm")
-	
-Meteor.startup ->
-	Meteor.subscribe "chat"; 
 
 
 Template.Logout.events
@@ -64,17 +46,11 @@ Template.Logout.events
 		Meteor.logout() if confirm "You are about to logout."
 
 Template.Menubar.helpers
-	rooms: -> room_collection.find()
-	server_connection: ->
-		name: "_connection"
-		_id: "_connection"
+	rooms: -> all_rooms.find()
 
 
 
 Template.ActiveRoomButton.events
-	# 'click .leave': (event)->
-	# 	event.stopImmediatePropagation()
-	# 	Meteor.call "leave_room", @name
 
 	'click': (event)->
 		console.log "setting active room to #{@_id}"
@@ -87,59 +63,51 @@ Template.ActiveRoomButton.helpers
 		# console.log "Comparing #{get_active_room()} and #{@_id}"
 		if get_active_room() == @_id then 'active' else ''
 
+
 Meteor.startup ->
+	Meteor.subscribe "my_rooms"
 	
 	Tracker.autorun ->
 		check_valid_active_room()
 	
-	Meteor.subscribe "my_rooms"
 	
 	room_collection.find().observeChanges
 		added: (id, room)->
-			local_chat_collections[id] = new Mongo.Collection null
-			local_chat_collections[id].insert line for line in room.chat || []
-			console.log ".room_button.#{id}"
-			console.log $(".room_button.#{id}")
+			all_rooms.insert(room)
+			
 			
 			# highlight the tab unless it's the current tab (already being looked at)
-			$(".room_button.#{id}").addClass "new_content" if get_active_room() != id && room.chat
+			# $(".room_button.#{id}").addClass "new_content" if get_active_room() != id && room.chat
 
 		changed: (id, fields)->
-			# Look backwards for the newest chat we've already cached locally and stop
-			for line in fields.chat or [] by -1
-				if local_chat_collections[id].find(id: line.id).count() == 0
-					local_chat_collections[id].insert line
-					console.log ".room_button.#{id}"
-					console.log $(".room_button.#{id}")
-					$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
-				else
-					break
-					
-		removed: ->
-			
+			console.log "room_collection changed for ID: then fields:"
+			console.log id
+			console.table fields
+			# # Look backwards for the newest chat we've already cached locally and stop
+			# for line in fields.chat or [] by -1
+			# 	if local_chat_collections[id].find(id: line.id).count() == 0
+			# 		local_chat_collections[id].insert line
+			# 		console.log ".room_button.#{id}"
+			# 		console.log $(".room_button.#{id}")
+			# 		$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
+			# 	else
+			# 		break
+								
 
 	Tracker.autorun ->
 		if Meteor.userId() and Meteor.status().connected
-			try
-				Meteor.call "join_room", "default"
-				Meteor.call "join_room", "default_two"
-			catch
-				console.log "Exception thrown while trying to join default rooms"
-		
+			Meteor.call "join_room", "default"
+			
 		
 		
 
 check_valid_active_room  = () ->
 	active_room = get_active_room()	
 	
-	if !active_room || (!active_room =~ /^>/ && room_collection.find({active_room}).count() == 0)
+	if !active_room || (!active_room =~ /^>/ && all_rooms.find({active_room}).count() == 0)
 		console.log "Setting active room because old active room gone"
-		set_active_room room_collection.findOne()?._id
+		set_active_room all_rooms.findOne()?._id
 	
-
-get_local_chat_collection  = (id) ->
-	local_chat_collections[id] ?= Mongo.Collection null
-
 	
 get_active_room = ->
 	Session.get "active_room"	

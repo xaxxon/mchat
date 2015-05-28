@@ -15,7 +15,6 @@
 </body>
 
 <template name='MasterChat'>
-		{{> Room server_connection}}
 		{{#each joined_rooms}}
 			{{> Room}}
 		{{/each}}	
@@ -70,7 +69,6 @@
 		{{> Logout}}
 		<div id='menubar_roomlist'>
 			<div>Rooms</div>
-			{{> ActiveRoomButton server_connection}}
 			{{#each rooms}}
 				{{> ActiveRoomButton}}
 			{{/each}}
