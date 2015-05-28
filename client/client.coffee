@@ -6,7 +6,7 @@ Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
 
 # Local collections for storing chat for each room even after the server deletes them
-local_chat_collections = {"_connection": new Mongo.Collection null}
+@local_chat_collections = {"_connection": new Mongo.Collection null}
 
 
 Template.Chat.events
@@ -16,10 +16,9 @@ Template.Chat.events
 		# if enter was pressed
 		if event.which == 13
 			text = $(template.find('.new_chat')).val()?.trim()
-			
-			if results = text?.match /[/](\S+)\s*(.*)\s*$/
-				if results[1] == "join"
-					Meteor.call "join_room", results[2]
+			if command_data = text?.match /^[/](\S+)\s*(.*)\s*$/
+				handle_command command_data...
+						
 			else
 				if text?.length > 0
 					room = @name
@@ -31,7 +30,7 @@ Template.Chat.events
 
 Template.Chat.helpers
 	cached_chat: ->
-		local_chat_collections[@_id].find()	
+		get_local_chat_collections(@_id).find()
 		
 
 	
@@ -103,7 +102,7 @@ Meteor.startup ->
 			console.log $(".room_button.#{id}")
 			
 			# highlight the tab unless it's the current tab (already being looked at)
-			$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
+			$(".room_button.#{id}").addClass "new_content" if get_active_room() != id && room.chat
 
 		changed: (id, fields)->
 			# Look backwards for the newest chat we've already cached locally and stop
@@ -123,7 +122,7 @@ Meteor.startup ->
 		if Meteor.userId() and Meteor.status().connected
 			try
 				Meteor.call "join_room", "default"
-				Meteor.call "join_room", "default_two", true
+				Meteor.call "join_room", "default_two"
 			catch
 				console.log "Exception thrown while trying to join default rooms"
 		
@@ -138,6 +137,9 @@ check_valid_active_room  = () ->
 		set_active_room room_collection.findOne()?._id
 	
 
+get_local_chat_collection  = (id) ->
+	local_chat_collections[id] ?= Mongo.Collection null
+
 	
 get_active_room = ->
 	Session.get "active_room"	
@@ -150,7 +152,6 @@ set_active_room = (id)->
 
 
 Template.Room.helpers
-
 	# sets the active class on the room so it is the room that is shown to the user
 	active: -> 
 		if get_active_room() == @_id then 'active' else ''

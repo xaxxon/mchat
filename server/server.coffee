@@ -1,23 +1,23 @@
 
 Meteor.methods
-	join_room: (room_name, private_room = false, invited_user_names = [])->
+	# Room is private if invited_user_names isn't empty
+	join_room: (room_name, invited_user_names = [])->
 		throw new Meteor.Error "Not Logged In", "You must be logged in to join a room" unless @userId
+		throw new Meteor.Error "No room name specified" unless room_name?
 		throw new Meteor.Error "Invalid room name, must start with a-z and contain only a-z and _" unless room_name.match valid_regexes.room_name
-		
 		
 		# check to see if it's a private room and if user is allowed
 		room = room_collection.findOne name: room_name
 		
-		console.log "#{@userId} trying to join room #{room_name}"
-		console.log room
-		console.log room?.private
-		console.log room?.invited_users
-
-		if room? && room.private && room.invited_users.missing @userId
+		if room? && !room.invited_users.empty() && room.invited_users.missing @userId
 			throw new Meteor.Error "Room is private and you are not invited"
 		else
+			console.log "invited users:"
 			
-			invited_users = _.union get_user_ids_from_user_names(invited_user_names), @userId
+			invited_users = get_user_ids_from_user_names(invited_user_names)
+			unless invited_user_names.empty()
+				invited_users = _.union invited_users, @userId 
+			console.log invited_users
 			
 			room_collection.upsert {name: room_name},
 				$addToSet: 
@@ -25,13 +25,11 @@ Meteor.methods
 						user_id: @userId
 						user_name: Meteor.user().username
 					invited_users: 
-						$each: if private_room then invited_users else []
-				$set:
-					# keep the room in its current privacy state if it already exists
-					private: existing_room?.private or private_room
+						$each: invited_users
 				{} 
 				(error, updated_document_count)-> console.log error; console.log updated_document_count
-					
+			
+	
 	leave_room: (room_name)->
 		room_collection.update {name: room_name}, 
 			{$pull:	{users: {user_id: Meteor.userId()}}}
@@ -104,21 +102,21 @@ Meteor.startup ->
 	room_collection.remove {}
 
 
-# Meteor.setInterval (->
+Meteor.setInterval (->
 	# console.log "Checking for old chats #{moment().subtract 10, 'seconds'}"
-	
+
 	# Delete stored chat elements older than threshold
 	# meteor:PRIMARY> db.rooms.update({}, {$pull: {"chat":{date: {$lt: 1432208317490}}}})
-	# room_collection.update {},
-	# 	$pull:
-	# 		chat:
-	# 			date:
-	# 				$lt: moment().subtract(10, "seconds").valueOf(),
-	# 	{multi: true}
-	# 	(error)-> console.log error if error
-	#
-	# ), 1000
-	
+	room_collection.update {},
+		$pull:
+			chat:
+				date:
+					$lt: moment().subtract(10, "seconds").valueOf(),
+		{multi: true}
+		(error)-> console.log error if error
+
+	), 1000
+
 
 			
 	
