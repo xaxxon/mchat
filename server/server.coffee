@@ -1,11 +1,12 @@
 
 Meteor.methods
 	# Room is private if invited_user_names isn't empty
-	join_room: (room_name, invited_user_names = [])->
+	join_room: (room_name, invited_user_names...)->
+		console.log room_name
 		throw new Meteor.Error "Not Logged In", "You must be logged in to join a room" unless @userId
 		throw new Meteor.Error "No room name specified" unless room_name?
 		throw new Meteor.Error "Invalid room name, must start with a-z and contain only a-z and _" unless room_name.match valid_regexes.room_name
-		
+		console.log "Got join room command for room name #{room_name}"
 		# check to see if it's a private room and if user is allowed
 		room = room_collection.findOne name: room_name
 		
@@ -44,7 +45,10 @@ Meteor.methods
 					username: Meteor.user().username
 					date: Date.now()
 					text: text
-					id: Random.id()
+					id: Random.id(),
+			{},
+			(error, count)->
+				console.log "add chat results error: #{error}, result: #{count}"
 					
 	broadcast_chat: (text)->
 		console.log "Add chat #{room_id} #{text}"
@@ -55,7 +59,7 @@ Meteor.methods
 					username: Meteor.user().username
 					date: Date.now()
 					text: text
-					id: Random.id()				
+					id: Random.id()
 		
 		
 get_user_ids_from_user_names = (user_names)->

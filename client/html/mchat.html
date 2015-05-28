@@ -9,13 +9,13 @@
 			{{> loginButtons}}
 		{{else}}
 			{{> Menubar}}
-			{{> MasterChat}}
+			{{> Rooms}}
 		{{/unless}}
 	{{/unless}}
 </body>
 
-<template name='MasterChat'>
-		{{#each joined_rooms}}
+<template name='Rooms'>
+		{{#each rooms}}
 			{{> Room}}
 		{{/each}}	
 </template>
@@ -37,13 +37,13 @@
 
 <template name='RoomUser'>
 	<div class='user'>
-		{{name}}
+		{{user_name}}
 	</div>
 </template>
 
 <template name='Chat'>
 	<div class='chat'>
-		{{ #each cached_chat }}
+		{{ #each chat }}
 			{{> ChatLine}}
 		{{ /each }}
 	</div>

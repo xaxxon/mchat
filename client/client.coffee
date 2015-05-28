@@ -5,30 +5,35 @@ Template.registerHelper "Meteor", ->Meteor
 Accounts.ui.config
   passwordSignupFields: "USERNAME_ONLY"
 
-all_rooms = new Mongo.Collection null
+@all_rooms = new Mongo.Collection null
 
 
 Template.Chat.events
-		
-	'keypress .new_chat': (event, template) ->~
+
+	'keypress .new_chat': (event, template) ->
 
 		# if enter was pressed
 		if event.which == 13
 			text = $(template.find('.new_chat')).val()?.trim()
 			if command_data = text?.match /^[/](\S+)\s*(.*)\s*$/
-				handle_command command_data...
+				console.log "command #{command_data[1]} with parameters #{command_data[2]}"
+				handle_command command_data[1..]...
 						
 			else
 				if text?.length > 0
 					room = @name
+					console.log "add chat called"
 					Meteor.call "add_chat", get_active_room(), text unless @client_only
 
 			# clear the text entry
 			$('.new_chat').val("")
+			
+	'click': (event, template)->
+		template.$(".new_chat").focus()
 
 	
-Template.MasterChat.helpers
-	joined_rooms: -> all_rooms.find()
+Template.Rooms.helpers
+	rooms: -> all_rooms.find()
 	
 
 # This should move into a Tracker.afterFlush, most likely	
@@ -67,13 +72,22 @@ Template.ActiveRoomButton.helpers
 Meteor.startup ->
 	Meteor.subscribe "my_rooms"
 	
-	Tracker.autorun ->
-		check_valid_active_room()
+	all_rooms.insert
+		name: "_server",
+		users: []
+		invited_users: [],
+		chat: []
+	
+	
 	
 	
 	room_collection.find().observeChanges
 		added: (id, room)->
-			all_rooms.insert(room)
+			console.log "added room:"
+			room._id = id
+			console.log room
+			insert_id = all_rooms.insert(room)
+			console.log "local collection insert id: #{insert_id}"
 			
 			
 			# highlight the tab unless it's the current tab (already being looked at)
@@ -82,33 +96,31 @@ Meteor.startup ->
 		changed: (id, fields)->
 			console.log "room_collection changed for ID: then fields:"
 			console.log id
-			console.table fields
-			# # Look backwards for the newest chat we've already cached locally and stop
-			# for line in fields.chat or [] by -1
-			# 	if local_chat_collections[id].find(id: line.id).count() == 0
-			# 		local_chat_collections[id].insert line
-			# 		console.log ".room_button.#{id}"
-			# 		console.log $(".room_button.#{id}")
-			# 		$(".room_button.#{id}").addClass "new_content" unless get_active_room() == id
-			# 	else
-			# 		break
+			console.log fields
+			if fields.chat?
+				all_rooms.update id,
+					$addToSet: 
+						chat:
+							$each: fields.chat,
+					{},
+					(error, count)-> console.log "observe:changed error #{error}, count #{count}"
+							
+			if fields.users?
+				all_rooms.update id,
+					$set:
+						users: fields.users
+				
+			console.log all_rooms.findOne(id).chat
+		
+		removed: (id)->
+			all_rooms.remove id
 								
 
 	Tracker.autorun ->
 		if Meteor.userId() and Meteor.status().connected
 			Meteor.call "join_room", "default"
-			
-		
-		
 
-check_valid_active_room  = () ->
-	active_room = get_active_room()	
-	
-	if !active_room || (!active_room =~ /^>/ && all_rooms.find({active_room}).count() == 0)
-		console.log "Setting active room because old active room gone"
-		set_active_room all_rooms.findOne()?._id
-	
-	
+
 get_active_room = ->
 	Session.get "active_room"	
 	
@@ -117,6 +129,12 @@ set_active_room = (id)->
 	$(".room_button.#{id}").removeClass "new_content"
 	Tracker.afterFlush ->$("##{id} .new_chat").focus()
 	
+Tracker.autorun ->
+	active_room = get_active_room()	
+	console.log "checking if #{active_room} is still good active room"
+	if !active_room || /^>/ && all_rooms.find(active_room).count() == 0
+		console.log "Setting active room because old active room gone"
+		set_active_room all_rooms.findOne()?._id
 
 
 Template.Room.helpers
