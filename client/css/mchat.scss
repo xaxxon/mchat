@@ -98,6 +98,15 @@ html, body, #menubar,  {
 	width: 80px;
 	background-color: grey;
 	border: 1px solid black;
+	
+	.user {
+		&.present {
+			font-weight: bolder;
+		}
+		&.invited {
+			font-style: italic;
+		}
+	}
 }
 
 #login-buttons {

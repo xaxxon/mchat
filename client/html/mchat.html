@@ -22,6 +22,7 @@
 
 <template name='Room'>
 	<div class='room {{active}}' id='{{_id}}'>
+		{{log}}
 		{{> Chat}}
 		{{> RoomUsers}}
 	</div>
@@ -29,15 +30,20 @@
 
 <template name='RoomUsers'>
 	<div class='room_users'>
-		{{#each users}}
+		{{log}}
+		{{#each connected_users}}
 			{{>RoomUser}}
+		{{/each}}
+		{{#each invited_users_not_connected}}
+			{{>RoomUser }}
 		{{/each}}
 	</div>
 </template>
 
 <template name='RoomUser'>
-	<div class='user'>
-		{{user_name}}
+	{{log}}
+	<div class='user {{user_status}}'>
+		{{user_name}} 
 	</div>
 </template>
 

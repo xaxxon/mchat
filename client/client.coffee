@@ -120,6 +120,9 @@ Meteor.startup ->
 		if Meteor.userId() and Meteor.status().connected
 			Meteor.call "join_room", "default"
 
+		
+
+	
 
 get_active_room = ->
 	Session.get "active_room"	
@@ -131,16 +134,41 @@ set_active_room = (id)->
 	
 Tracker.autorun ->
 	active_room = get_active_room()	
-	console.log "checking if #{active_room} is still good active room"
 	if !active_room || /^>/ && all_rooms.find(active_room).count() == 0
-		console.log "Setting active room because old active room gone"
 		set_active_room all_rooms.findOne()?._id
 
 
 Template.Room.helpers
 	# sets the active class on the room so it is the room that is shown to the user
+	log: ->
+		console.log "Template.Room.helpers this:"
+		console.log this
+		""
 	active: -> 
 		if get_active_room() == @_id then 'active' else ''
 
-	
+Template.RoomUsers.helpers
+	log: ->
+		console.log "Template.Roomusers.helpers this:"
+		console.log this
+		""
+	connected_users: ->
+		this.users
+		
+	invited_users_not_connected: ->
+		results = _.difference this.invited_users, this.users
+		
+		console.log results
+		results
+
+Template.RoomUser.helpers
+	log: ->
+		console.log "Template.RoomUser.helpers this:"
+		console.log this
+	user_status: (user_status)->
+		console.log "Room user helper this:"
+		console.log this
+		user_status
+	user_name: ->this.user_name
+
 

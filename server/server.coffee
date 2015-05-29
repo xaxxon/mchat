@@ -35,6 +35,19 @@ Meteor.methods
 		room_collection.update {name: room_name}, 
 			{$pull:	{users: {user_id: Meteor.userId()}}}
 			
+	invite_users: (room_name, user_name_list...)->
+		
+		user_list = get_user_ids_from_user_names user_name_list
+		console.log "Invite users to #{room_name} users names then user ids:"
+		console.log user_name_list
+		console.log " ==>"
+		console.log user_list
+		room_collection.update name: room_name,
+			$addToSet: invited_users:
+				$each: user_list,
+			{},
+			(error,count)-> console.log "error/count #{error} #{count}"
+			
 
 	add_chat: (room_id, text)->
 		console.log "Add chat #{room_id} #{text}"
@@ -63,11 +76,17 @@ Meteor.methods
 		
 		
 get_user_ids_from_user_names = (user_names)->
-	Meteor.users.find(
+	console.log "in get_user_ids_from_user_names"
+	console.log user_names
+	results = Meteor.users.find({
 		username:
-			$in: user_names,
+			$in: user_names},
 		fields:
 			_id: 1).fetch()
+	results = (user._id for user in results)
+	console.log "results ==>"
+	console.log results
+	results
 		
 			
 				
@@ -104,6 +123,9 @@ user_gone = (user_id)->
 Meteor.startup ->
 	console.log "Removing all room info on startup"
 	room_collection.remove {}
+	unless Meteor.users.find(username: "admin").count() == 1 
+		console.log "Creating admin user with default password"
+		Accounts.createUser username: "admin", password: "admin"
 
 
 Meteor.setInterval (->
