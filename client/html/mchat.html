@@ -14,11 +14,14 @@
 	{{/unless}}
 </body>
 
+
+
 <template name='Rooms'>
 		{{#each rooms}}
 			{{> Room}}
 		{{/each}}	
 </template>
+
 
 <template name='Room'>
 	<div class='room {{active}}' id='{{_id}}'>
@@ -28,24 +31,29 @@
 	</div>
 </template>
 
+
 <template name='RoomUsers'>
 	<div class='room_users'>
-		{{log}}
+		{{#each managers}}
+			{{>RoomUser}}
+		{{/each}}
 		{{#each connected_users}}
 			{{>RoomUser}}
 		{{/each}}
 		{{#each invited_users_not_connected}}
-			{{>RoomUser }}
+			{{>RoomUser}}
 		{{/each}}
+		
 	</div>
 </template>
 
+
 <template name='RoomUser'>
-	{{log}}
-	<div class='user {{user_status}}'>
-		{{user_name}} 
+	<div class='user {{type}}'>
+		{{username}}
 	</div>
 </template>
+
 
 <template name='Chat'>
 	<div class='chat'>
@@ -55,6 +63,7 @@
 	</div>
 	<input type='text' class='new_chat'>
 </template>
+
 
 <template name='ChatLine'>
 	<div class='line'>
@@ -68,7 +77,8 @@
 			{{text}}
 		</div>
 	</div>	
-</template>	
+</template>
+
 
 <template name="Menubar">
 	<div id='menubar' class='expanded'>
@@ -82,11 +92,13 @@
 	</div>
 </template>
 
+
 <template name='ActiveRoomButton'>
 	<div class='room_button {{_id}} {{active}}'>
 		{{name}}
 	</div>
 </template>
+
 
 <template name='Logout'>
 	<div class='textbutton'>logout</div>

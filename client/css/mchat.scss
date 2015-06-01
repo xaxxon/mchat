@@ -100,10 +100,10 @@ html, body, #menubar,  {
 	border: 1px solid black;
 	
 	.user {
-		&.present {
+		&.manager {
 			font-weight: bolder;
 		}
-		&.invited {
+		&.invited_user {
 			font-style: italic;
 		}
 	}
