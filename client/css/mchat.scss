@@ -23,13 +23,10 @@ html, body, #menubar,  {
 }
 
 #menubar {
-	width: 20px;
+	width: 100px;
 	float: left;
-	background-color: red;
+	background-color: white;
 	
-	&.expanded {
-		width: 100px;
-	}
 	#menubar_roomlist {
 		.room_button {
 			width: 100%;
@@ -39,11 +36,12 @@ html, body, #menubar,  {
 			border-bottom: 1px solid black;
 			margin-bottom: 5px;
 			margin-top: 5px;
-			background-color: grey;
+			background-color: white;
 			padding-top: 2px;
 			padding-bottom: 2px;
 			padding-left: 3px;
 			&.active {
+				background-color: grey;
 				border-top: 3px solid black;
 				border-bottom: 3px solid black;
 				margin-top: 4px;
@@ -58,11 +56,11 @@ html, body, #menubar,  {
 
 
 .room {
+	background-color: grey;
 	height: 100%;
 	position: relative;
 	overflow: auto;
 	margin: 0;
-	background-color: green;
 	display: none;
 	
 	&.active {
@@ -71,23 +69,27 @@ html, body, #menubar,  {
 	
 	.chat, .new_chat {
 		margin-left: 5px;
+		
 	}
 
 	.chat {
-		border: 1px solid black;
+		background-color: white;
+		border: 3px solid black;
 		margin-top: 5px;
+		margin-left: 10px;
 		position: absolute;
 		width: 90%;
 		top: 0;
-		bottom: 40px;	
+//		bottom: 40px;
 	}
 
 	.new_chat {
 		position: absolute;
+		margin-left: 10px;
 		width: 90%;
 		height: 20px;
 		bottom: 0px;
-		margin-bottom: 10px;
+//		margin-bottom: 10px;
 		overflow: auto;
 	}
 }
@@ -117,7 +119,7 @@ html, body, #menubar,  {
 div.chat {
 	overflow: auto;
 	top: 0px;
-	bottom: 50px;
+	bottom: 30px;
 	width: 90%;
 	div.line {
 		div {
